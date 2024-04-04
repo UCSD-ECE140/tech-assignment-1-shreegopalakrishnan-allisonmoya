@@ -107,5 +107,6 @@ if __name__ == '__main__':
     client.publish(f"games/{lobby_name}/{player_3}/move", "DOWN")
     client.publish(f"games/{lobby_name}/start", "STOP")
 
+    # Keyboard input of some kind
 
     client.loop_forever()
