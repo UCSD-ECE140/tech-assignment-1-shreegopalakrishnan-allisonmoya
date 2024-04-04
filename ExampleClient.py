@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import time
-
+import random
 
 import paho.mqtt.client as paho
 from paho import mqtt
@@ -78,36 +78,77 @@ def on_message(client, userdata, msg):
 
 
 
+### CLIENT 1
 
 # using MQTT version 5 here, for 3.1.1: MQTTv311, 3.1: MQTTv31
 # userdata is user defined data of any type, updated by user_data_set()
 # client_id is the given name of the client
-client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="", userdata=None, protocol=paho.MQTTv5)
-client.on_connect = on_connect
-
-
+client1 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Client_1", userdata=None, protocol=paho.MQTTv5)
+client1.on_connect = on_connect
 # enable TLS for secure connection
-client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+client1.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 # set username and password
-client.username_pw_set("{YOUR USERNAME}", "{YOUR PASSWORD}")
+client1.username_pw_set("ECE_140B", "ECE_140BPasscode")
 # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-client.connect("{YOUR URL}", 8883)
-
-
+client1.connect("a7d11f6ab497494cb309b9bc9a40c69f.s1.eu.hivemq.cloud", 8883)
 # setting callbacks, use separate functions like above for better visibility
-client.on_subscribe = on_subscribe
-client.on_message = on_message
-client.on_publish = on_publish
+client1.on_subscribe = on_subscribe
+client1.on_message = on_message
+client1.on_publish = on_publish
 
 
-# subscribe to all topics of encyclopedia by using the wildcard "#"
-client.subscribe("encyclopedia/#", qos=1)
+### CLIENT 2
+client2 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Client_2", userdata=None, protocol=paho.MQTTv5)
+client2.on_connect = on_connect
+# enable TLS for secure connection
+client2.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+# set username and password
+client2.username_pw_set("ECE_140B", "ECE_140BPasscode")
+# connect to HiveMQ Cloud on port 8883 (default for MQTT)
+client2.connect("a7d11f6ab497494cb309b9bc9a40c69f.s1.eu.hivemq.cloud", 8883)
+# setting callbacks, use separate functions like above for better visibility
+client2.on_subscribe = on_subscribe
+client2.on_message = on_message
+client2.on_publish = on_publish
+
+### CLIENT 3
+client3 = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Client_3", userdata=None, protocol=paho.MQTTv5)
+client3.on_connect = on_connect
+# enable TLS for secure connection
+client3.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+# set username and password
+client3.username_pw_set("ECE_140B", "ECE_140BPasscode")
+# connect to HiveMQ Cloud on port 8883 (default for MQTT)
+client3.connect("a7d11f6ab497494cb309b9bc9a40c69f.s1.eu.hivemq.cloud", 8883)
+# setting callbacks, use separate functions like above for better visibility
+client3.on_subscribe = on_subscribe
+client3.on_message = on_message
+client3.on_publish = on_publish
+
+client3.subscribe("number/randomNums", qos=1)
+client3.loop_start()
+
+ind = 0
+while True:
+    num1 = random.random()
+    num2 = random.random()
+    client1.publish("number/randomNums", payload=num1, qos=1)
+    client2.publish("number/randomNums", payload=num2, qos=1)
+    time.sleep(3)
+    ind+=1
+    if ind>5:
+        break
+
+# # subscribe to all topics of encyclopedia by using the wildcard "#"
+# client.subscribe("encyclopedia/#", qos=1)
 
 
-# a single publish, this can also be done in loops, etc.
-client.publish("encyclopedia/temperature", payload="hot", qos=1)
+# # a single publish, this can also be done in loops, etc.
+# client.publish("encyclopedia/temperature", payload="hot", qos=1)
 
 
-# loop_forever for simplicity, here you need to stop the loop manually
-# you can also use loop_start and loop_stop
-client.loop_forever()
+# # loop_forever for simplicity, here you need to stop the loop manually
+# # you can also use loop_start and loop_stop
+# client1.loop_forever()
+# client2.loop_forever()
+# client3.loop_forever()
