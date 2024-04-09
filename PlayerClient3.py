@@ -71,7 +71,7 @@ if __name__ == '__main__':
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
-    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player2_new", userdata=None, protocol=paho.MQTTv5)
+    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player3_new", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
     client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     client.on_publish = on_publish # Can comment out to not print when publishing to topics
 
     lobby_name = "TestLobby"
-    player_2 = "Player2"
+    player_3 = "Player3"
 
     client.subscribe(f"games/{lobby_name}/lobby")
     client.subscribe(f'games/{lobby_name}/+/game_state')
@@ -94,15 +94,15 @@ if __name__ == '__main__':
     client.loop_start()
 
     client.publish("new_game", json.dumps({'lobby_name':lobby_name,
-                                            'team_name':'BTeam',
-                                            'player_name' : player_2}))
+                                            'team_name':'ATeam',
+                                            'player_name' : player_3}))
 
     time.sleep(1) # Wait a second to resolve game start
     #client.publish(f"games/{lobby_name}/start", "START")
 
     while not game_over:
         user_input = input("Enter command {UP/DOWN/LEFT/RIGHT}")
-        client.publish(f"games/{lobby_name}/{player_2}/move", user_input)
+        client.publish(f"games/{lobby_name}/{player_3}/move", user_input)
 
     print("Game has ended!")
     client.publish(f"games/{lobby_name}/start", "STOP")
