@@ -71,7 +71,7 @@ if __name__ == '__main__':
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
-    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player1", userdata=None, protocol=paho.MQTTv5)
+    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player1_new", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
     client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -98,7 +98,7 @@ if __name__ == '__main__':
                                             'player_name' : player_1}))
 
     time.sleep(1) # Wait a second to resolve game start
-    client.publish(f"games/{lobby_name}/start", "START")
+    #   client.publish(f"games/{lobby_name}/start", "START")
 
     while not game_over:
         user_input = input("Enter command {UP/DOWN/LEFT/RIGHT}")
