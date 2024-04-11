@@ -45,7 +45,6 @@ def on_subscribe(client, userdata, mid, granted_qos, properties=None):
     print("Subscribed: " + str(mid) + " " + str(granted_qos))
 
 game_over = False
-
 # print message, useful for checking if it was successful
 def on_message(client, userdata, msg):
     """
@@ -54,12 +53,79 @@ def on_message(client, userdata, msg):
         :param userdata: userdata is set when initiating the client, here it is userdata=None
         :param msg: the message with topic and payload
     """
+    global current_position, walls
 
     print("message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
      # Check if the message indicates the game is over
     if msg.payload.decode() == "Game Over: Game has been stopped":
         game_over = True  # Set the flag to True to end the game loop
+    elif 'game_state' in msg.topic:
+        # Extracting current position and walls from the payload
+        current_position = json.loads(msg.payload.decode()).get('currentPosition', [])
+        walls = json.loads(msg.payload.decode()).get('walls', [])
+        print(f"Current Position: {current_position}, Walls: {walls}")
+
+
+#def next_move(current_pos, walls):
+    # if [current_pos[0], current_pos[1] + 1] not in walls and (current_pos[1] + 1)>0 and (current_pos[1] + 1)<10:
+    #     return "RIGHT"
+    # elif [current_pos[0] - 1, current_pos[1]] not in walls and (current_pos[0] - 1)>0 and (current_pos[0] - 1)<10:
+    #     return "UP"
+    # elif [current_pos[0] + 1, current_pos[1]] not in walls and (current_pos[0] + 1)>0 and (current_pos[0] + 1)<10:
+    #     return "DOWN"
+    # elif [current_pos[0], current_pos[1] - 1] not in walls and (current_pos[1] - 1)>0 and (current_pos[1] - 1)<10:
+    #     return "LEFT"
+    # return "ERROR!"
+
+# def next_move(current_pos, walls):
+#     # Calculate potential moves based on the current position
+#     moves = {
+#         "RIGHT": [current_pos[0], current_pos[1] + 1],
+#         "DOWN": [current_pos[0] + 1, current_pos[1]],
+#         "LEFT": [current_pos[0], current_pos[1] - 1],
+#         "UP": [current_pos[0] - 1, current_pos[1]]
+#     }
+
+#     # Order of preference for moves
+#     preference = ["RIGHT", "DOWN", "LEFT", "UP"]
+
+#     for direction in preference:
+#         next_pos = moves[direction]
+        
+#         # Check if next position is not a wall and within bounds (assuming grid size 10x10 for simplicity)
+#         if next_pos not in walls and 0 <= next_pos[0] < 10 and 0 <= next_pos[1] < 10:
+#             return direction
+
+#     # If no direction is valid (which shouldn't happen in most cases), return an error or a default action
+#     return "ERROR!"
+
+visited = set()  
+
+def next_move(current_pos, walls):
+    global visited
+
+    moves = {
+        "RIGHT": [current_pos[0], current_pos[1] + 1],
+        "DOWN": [current_pos[0] + 1, current_pos[1]],
+        "LEFT": [current_pos[0], current_pos[1] - 1],
+        "UP": [current_pos[0] - 1, current_pos[1]]
+    }
+
+    visited.add(tuple(current_pos))
+
+    unvisited_moves = {direction: pos for direction, pos in moves.items() if tuple(pos) not in visited and pos not in walls}
+    visited_moves = {direction: pos for direction, pos in moves.items() if tuple(pos) in visited and pos not in walls}
+
+    for direction, pos in unvisited_moves.items():
+        if 0 <= pos[0] < 10 and 0 <= pos[1] < 10:
+            return direction
+
+    for direction, pos in visited_moves.items():
+        if 0 <= pos[0] < 10 and 0 <= pos[1] < 10:
+            return direction
+        
+    return "ERROR!"
 
 
 
@@ -71,7 +137,7 @@ if __name__ == '__main__':
     username = os.environ.get('USER_NAME')
     password = os.environ.get('PASSWORD')
 
-    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player4_new", userdata=None, protocol=paho.MQTTv5)
+    client = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION1, client_id="Player4_aut", userdata=None, protocol=paho.MQTTv5)
     
     # enable TLS for secure connection
     client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
@@ -99,10 +165,14 @@ if __name__ == '__main__':
 
     time.sleep(1) # Wait a second to resolve game start
     client.publish(f"games/{lobby_name}/start", "START")
+    time.sleep(20)
 
     while not game_over:
-        user_input = input("Enter command {UP/DOWN/LEFT/RIGHT}")
-        client.publish(f"games/{lobby_name}/{player_4}/move", user_input)
+        print(current_position)
+        print(walls)
+        next_m = next_move(current_position,walls)
+        client.publish(f"games/{lobby_name}/{player_4}/move", next_m)
+        time.sleep(1)
 
     print("Game has ended!")
     client.publish(f"games/{lobby_name}/start", "STOP")
