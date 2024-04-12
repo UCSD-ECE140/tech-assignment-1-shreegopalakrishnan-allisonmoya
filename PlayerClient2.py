@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import paho.mqtt.client as paho
 from paho import mqtt
 import time
-
+import random
 
 # setting callbacks for different events to see if it works, print the message etc.
 def on_connect(client, userdata, flags, rc, properties=None):
@@ -117,15 +117,12 @@ def next_move(current_pos, walls):
     unvisited_moves = {direction: pos for direction, pos in moves.items() if tuple(pos) not in visited and pos not in walls}
     visited_moves = {direction: pos for direction, pos in moves.items() if tuple(pos) in visited and pos not in walls}
 
-    for direction, pos in unvisited_moves.items():
-        if 0 <= pos[0] < 10 and 0 <= pos[1] < 10:
-            return direction
+    available_moves = list(unvisited_moves.keys()) + list(visited_moves.keys())
 
-    for direction, pos in visited_moves.items():
-        if 0 <= pos[0] < 10 and 0 <= pos[1] < 10:
-            return direction
-        
-    return "ERROR!"
+    if available_moves:
+        return random.choice(available_moves)
+    else:
+        return "ERROR!"
 
 
 
@@ -172,7 +169,7 @@ if __name__ == '__main__':
         print(walls)
         next_m = next_move(current_position,walls)
         client.publish(f"games/{lobby_name}/{player_2}/move", next_m)
-        time.sleep(1)
+        time.sleep(10)
 
     print("Game has ended!")
     client.publish(f"games/{lobby_name}/start", "STOP")
